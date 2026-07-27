@@ -36,6 +36,7 @@ return function (App $app): void {
         $group->group('', function (Group $group) {
             $group->get('', [HomeController::class, 'index']);
             $group->get('/settings', [SettingsController::class, 'publicSettings']);
+            $group->get('/branding/{asset:logo|favicon}', [SettingsController::class, 'brandingAsset']);
         });
 
 
@@ -74,6 +75,7 @@ return function (App $app): void {
 
             $group->group('/settings', function (Group $group) {
                 $group->get('', [SettingsController::class, 'list']);
+                $group->post('/branding', [SettingsController::class, 'updateBranding']);
                 $group->get('/{key:[a-z][a-z0-9_.-]{0,99}}', [SettingsController::class, 'show']);
                 $group->put('/{key:[a-z][a-z0-9_.-]{0,99}}', [SettingsController::class, 'upsert']);
                 $group->delete('/{key:[a-z][a-z0-9_.-]{0,99}}', [SettingsController::class, 'destroy']);

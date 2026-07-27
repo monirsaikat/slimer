@@ -37,6 +37,23 @@ AppFactory::setContainer($container);
 $app = AppFactory::create();
 $callableResolver = $app->getCallableResolver();
 
+// Slim routes start at `/api`, while Apache/XAMPP mounts this application in a
+// subdirectory and rewrites requests through `public/index.php`. Detect the
+// visible mount path so both `/slimer/api` and `/slimer/public/api` route
+// correctly without affecting PHP's built-in server at `/`.
+$scriptDirectory = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/'));
+$requestPath = (string) (parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/');
+if (
+    str_ends_with($scriptDirectory, '/public')
+    && $requestPath !== $scriptDirectory
+    && !str_starts_with($requestPath, $scriptDirectory . '/')
+) {
+    $scriptDirectory = substr($scriptDirectory, 0, -strlen('/public')) ?: '/';
+}
+if ($scriptDirectory !== '/' && $scriptDirectory !== '.' && $scriptDirectory !== '') {
+    $app->setBasePath(rtrim($scriptDirectory, '/'));
+}
+
 $middleware = require __DIR__ . '/../app/middleware.php';
 $middleware($app);
 

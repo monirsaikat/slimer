@@ -21,6 +21,10 @@ class SoftwareSetting extends Model
 {
     protected $table = 'software_settings';
 
+    protected $fillable = [
+        'setting_key',
+    ];
+
     protected $casts = [
         'is_public' => 'boolean',
     ];

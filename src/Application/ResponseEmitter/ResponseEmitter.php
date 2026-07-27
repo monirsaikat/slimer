@@ -28,6 +28,12 @@ class ResponseEmitter extends SlimResponseEmitter
             ->withAddedHeader('Cache-Control', 'post-check=0, pre-check=0')
             ->withHeader('Pragma', 'no-cache');
 
+        // Allow the hosted portal to reach a developer's local XAMPP API when
+        // browsers perform a Private Network Access preflight.
+        if (($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_PRIVATE_NETWORK'] ?? '') === 'true') {
+            $response = $response->withHeader('Access-Control-Allow-Private-Network', 'true');
+        }
+
         if (ob_get_contents()) {
             ob_clean();
         }

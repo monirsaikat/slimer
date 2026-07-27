@@ -16,6 +16,7 @@ Built with Slim 4.15 and PHP 8.2 or newer.
 - Paginated user search, filtering, sorting, and management
 - User status management and soft deletion
 - Typed public/admin software settings
+- Administrator-managed portal name, logo, and favicon
 - Private file, document, and avatar uploads
 - MySQL persistence through Eloquent ORM
 - Password hashing and user status scopes
@@ -45,6 +46,7 @@ possible. Tokens are never returned this way in production.
 - POST: /api/auth/email/verify
 - POST: /api/auth/email/resend
 - GET: /api/settings
+- GET: /api/branding/{logo|favicon}
 
 Protected routes (Bearer token required):
 
@@ -66,6 +68,7 @@ Administrator routes (Bearer token for an active admin required):
 - GET: /api/admin/audit-logs
 - GET: /api/admin/audit-logs/{id}
 - GET: /api/admin/settings
+- POST: /api/admin/settings/branding
 - GET: /api/admin/settings/{key}
 - PUT: /api/admin/settings/{key}
 - DELETE: /api/admin/settings/{key}
@@ -94,6 +97,9 @@ types and size limits are configured with `UPLOAD_ALLOWED_MIME_TYPES` and
 
 Settings support `string`, `integer`, `boolean`, and `json` types. Only settings
 explicitly marked `is_public: true` are returned by `GET /api/settings`.
+The branding endpoint accepts `multipart/form-data` with an optional
+`app_name`, `logo`, and `favicon`. Branding images are MIME-verified JPEG, PNG,
+or WebP files and are exposed through the read-only public branding routes.
 
 Access tokens expire after 15 minutes by default. Refresh tokens expire after
 30 days and rotate whenever they are used. Store refresh tokens only in secure,
