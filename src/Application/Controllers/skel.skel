@@ -1,13 +1,52 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Application\Controllers;
 
-use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Message\ServerRequestInterface as Request;
+use App\Application\Models\YourModel;
+use Illuminate\Database\Eloquent\Model;
 
-class YourControllerName extends Controller
+class YourControllerName extends CrudController
 {
-    public function method(Request $request, Response $response, $args)
+    protected function modelClass(): string
     {
+        return YourModel::class;
+    }
+
+    protected function createRules(): array
+    {
+        return [
+            'name' => ['required', 'string', 'max:100'],
+            'status' => ['sometimes', 'in:active,inactive'],
+        ];
+    }
+
+    protected function updateRules(Model $model): array
+    {
+        return [
+            'name' => ['sometimes', 'string', 'max:100'],
+            'status' => ['sometimes', 'in:active,inactive'],
+        ];
+    }
+
+    protected function writableFields(): array
+    {
+        return ['name', 'status'];
+    }
+
+    protected function searchColumns(): array
+    {
+        return ['name'];
+    }
+
+    protected function filterRules(): array
+    {
+        return ['status' => ['sometimes', 'in:active,inactive']];
+    }
+
+    protected function sortableColumns(): array
+    {
+        return ['id', 'name', 'created_at'];
     }
 }

@@ -4,18 +4,44 @@ declare(strict_types=1);
 
 namespace App\Application\Controllers;
 
+use Illuminate\Support\Facades\Validator;
 use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Psr7\Response as SlimResponse;
-
 
 abstract class Controller
 {
-    protected function validationFail($validator)
+    /**
+     * Validate a JSON/form request body and return only validated fields.
+     *
+     * @param array<string, mixed> $rules
+     * @return array<string, mixed>|Response
+     */
+    protected function validateRequest(Request $request, array $rules): array|Response
     {
-        return $this->respondWithData([
-            'error'   => 'Validation failed',
-            'errors'  => $validator->errors()
-        ], 400);
+        $body = $request->getParsedBody();
+        if (!is_array($body)) {
+            return $this->respondWithValidationError([
+                'body' => ['The request body must be a JSON object.'],
+            ]);
+        }
+
+        return $this->validateData($body, $rules);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @param array<string, mixed> $rules
+     * @return array<string, mixed>|Response
+     */
+    protected function validateData(array $data, array $rules): array|Response
+    {
+        $validator = Validator::make($data, $rules);
+        if ($validator->fails()) {
+            return $this->respondWithValidationError($validator->errors()->toArray());
+        }
+
+        return $validator->validated();
     }
 
     /**
@@ -81,8 +107,8 @@ abstract class Controller
     protected function respondWithValidationError(array $errors): Response
     {
         return $this->respondWithData([
-            'error'   => 'Validation failed',
-            'details' => $errors,
-        ], 422);  // Unprocessable Entity
+            'error'  => 'Validation failed',
+            'errors' => $errors,
+        ], 422);
     }
 }
