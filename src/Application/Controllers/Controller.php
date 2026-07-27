@@ -36,12 +36,34 @@ abstract class Controller
      */
     protected function validateData(array $data, array $rules): array|Response
     {
+        $data = $this->normalizeFloatValues($data);
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
             return $this->respondWithValidationError($validator->errors()->toArray());
         }
 
         return $validator->validated();
+    }
+
+    /**
+     * Laravel's numeric validator delegates decimal floats to brick/math,
+     * which deprecates native float input. JSON clients naturally send floats,
+     * so normalize them to their lossless numeric string form before validation.
+     *
+     * @param array<string|int, mixed> $data
+     * @return array<string|int, mixed>
+     */
+    private function normalizeFloatValues(array $data): array
+    {
+        foreach ($data as $key => $value) {
+            if (is_float($value)) {
+                $data[$key] = (string) $value;
+            } elseif (is_array($value)) {
+                $data[$key] = $this->normalizeFloatValues($value);
+            }
+        }
+
+        return $data;
     }
 
     /**

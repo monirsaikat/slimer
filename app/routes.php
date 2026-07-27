@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 use App\Application\Controllers\AuthController;
 use App\Application\Controllers\AuditController;
+use App\Application\Controllers\CustomerController;
 use App\Application\Controllers\HomeController;
 use App\Application\Controllers\FileController;
 use App\Application\Controllers\ProfileController;
+use App\Application\Controllers\ProductAttributeController;
+use App\Application\Controllers\ProductController;
+use App\Application\Controllers\ProductVariationController;
 use App\Application\Controllers\SettingsController;
+use App\Application\Controllers\SalesOrderController;
 use App\Application\Controllers\UserController;
 use App\Application\Middleware\JwtMiddleware;
 use App\Application\Middleware\AdminMiddleware;
@@ -86,6 +91,54 @@ return function (App $app): void {
                 $group->get('/{id:[1-9]\\d*}', [FileController::class, 'show']);
                 $group->get('/{id:[1-9]\\d*}/download', [FileController::class, 'download']);
                 $group->delete('/{id:[1-9]\\d*}', [FileController::class, 'destroy']);
+            });
+
+            $group->group('/product-attributes', function (Group $group) {
+                $group->get('', [ProductAttributeController::class, 'index']);
+                $group->post('', [ProductAttributeController::class, 'store']);
+                $group->get('/{id:[1-9]\\d*}', [ProductAttributeController::class, 'show']);
+                $group->patch('/{id:[1-9]\\d*}', [ProductAttributeController::class, 'update']);
+                $group->delete('/{id:[1-9]\\d*}', [ProductAttributeController::class, 'destroy']);
+            });
+
+            $group->group('/products', function (Group $group) {
+                $group->get('', [ProductController::class, 'index']);
+                $group->post('', [ProductController::class, 'store']);
+                $group->get('/{id:[1-9]\\d*}', [ProductController::class, 'show']);
+                $group->patch('/{id:[1-9]\\d*}', [ProductController::class, 'update']);
+                $group->delete('/{id:[1-9]\\d*}', [ProductController::class, 'destroy']);
+                $group->post('/{productId:[1-9]\\d*}/variations', [ProductVariationController::class, 'store']);
+                $group->patch(
+                    '/{productId:[1-9]\\d*}/variations/{id:[1-9]\\d*}',
+                    [ProductVariationController::class, 'update'],
+                );
+                $group->delete(
+                    '/{productId:[1-9]\\d*}/variations/{id:[1-9]\\d*}',
+                    [ProductVariationController::class, 'destroy'],
+                );
+            });
+
+            $group->group('/customers', function (Group $group) {
+                $group->get('/stats', [CustomerController::class, 'stats']);
+                $group->get('', [CustomerController::class, 'index']);
+                $group->post('', [CustomerController::class, 'store']);
+                $group->get('/{id:[1-9]\\d*}', [CustomerController::class, 'show']);
+                $group->patch('/{id:[1-9]\\d*}', [CustomerController::class, 'update']);
+                $group->delete('/{id:[1-9]\\d*}', [CustomerController::class, 'destroy']);
+            });
+
+            $group->group('/sales-orders', function (Group $group) {
+                $group->get('/stats', [SalesOrderController::class, 'stats']);
+                $group->get('', [SalesOrderController::class, 'index']);
+                $group->post('', [SalesOrderController::class, 'store']);
+                $group->get('/{id:[1-9]\\d*}', [SalesOrderController::class, 'show']);
+                $group->patch('/{id:[1-9]\\d*}', [SalesOrderController::class, 'update']);
+                $group->delete('/{id:[1-9]\\d*}', [SalesOrderController::class, 'destroy']);
+                $group->post('/{id:[1-9]\\d*}/payments', [SalesOrderController::class, 'addPayment']);
+                $group->delete(
+                    '/{id:[1-9]\\d*}/payments/{paymentId:[1-9]\\d*}',
+                    [SalesOrderController::class, 'destroyPayment'],
+                );
             });
 
             $group->group('/users', function (Group $group) {

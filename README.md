@@ -17,6 +17,7 @@ Built with Slim 4.15 and PHP 8.2 or newer.
 - User status management and soft deletion
 - Typed public/admin software settings
 - Administrator-managed portal name, logo, and favicon
+- Administrator product, variation, attribute, and option management
 - Private file, document, and avatar uploads
 - MySQL persistence through Eloquent ORM
 - Password hashing and user status scopes
@@ -76,6 +77,12 @@ Administrator routes (Bearer token for an active admin required):
 - GET: /api/admin/files/{id}
 - GET: /api/admin/files/{id}/download
 - DELETE: /api/admin/files/{id}
+- GET, POST: /api/admin/product-attributes
+- GET, PATCH, DELETE: /api/admin/product-attributes/{id}
+- GET, POST: /api/admin/products
+- GET, PATCH, DELETE: /api/admin/products/{id}
+- POST: /api/admin/products/{productId}/variations
+- PATCH, DELETE: /api/admin/products/{productId}/variations/{id}
 - GET: /api/admin/users/stats
 - GET: /api/admin/users
 - POST: /api/admin/users
@@ -100,6 +107,12 @@ explicitly marked `is_public: true` are returned by `GET /api/settings`.
 The branding endpoint accepts `multipart/form-data` with an optional
 `app_name`, `logo`, and `favicon`. Branding images are MIME-verified JPEG, PNG,
 or WebP files and are exposed through the read-only public branding routes.
+
+Products support draft, active, and archived states, base pricing, currency,
+SKU, inventory, and reusable attributes. Select and color attributes contain
+managed options. Each product variation has its own SKU, pricing, inventory,
+status, default flag, and one validated value for every attribute assigned to
+the product.
 
 Access tokens expire after 15 minutes by default. Refresh tokens expire after
 30 days and rotate whenever they are used. Store refresh tokens only in secure,
