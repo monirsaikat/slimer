@@ -49,6 +49,7 @@ class SalesOrderController extends Controller
                     ->orWhereHas('customer', function ($customer) use ($search): void {
                         $customer->where('first_name', 'like', "%{$search}%")
                             ->orWhere('last_name', 'like', "%{$search}%")
+                            ->orWhereRaw("CONCAT_WS(' ', first_name, last_name) LIKE ?", ["%{$search}%"])
                             ->orWhere('company', 'like', "%{$search}%")
                             ->orWhere('email', 'like', "%{$search}%");
                     });
@@ -259,7 +260,7 @@ class SalesOrderController extends Controller
             'shipping_total' => ['sometimes', 'numeric', 'min:0', 'max:9999999999.99'],
             'notes' => ['sometimes', 'nullable', 'string', 'max:5000'],
             'items' => [$order ? 'sometimes' : 'required', 'array', 'min:1', 'max:100'],
-            'items.*.product_id' => ['required', 'integer', 'distinct', 'exists:products,id'],
+            'items.*.product_id' => ['required', 'integer', 'exists:products,id'],
             'items.*.variation_id' => ['sometimes', 'nullable', 'integer', 'exists:product_variations,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:1000000'],
             'items.*.unit_price' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:9999999999.99'],
@@ -307,10 +308,10 @@ class SalesOrderController extends Controller
             $item->variation_name = $variation?->name;
             $item->sku = $variation?->sku ?? $product->sku;
             $item->quantity = $quantity;
-            $item->unit_price = $unitPrice;
-            $item->discount_amount = $discount;
-            $item->tax_amount = $tax;
-            $item->line_total = $base - $discount + $tax;
+            $item->unit_price = number_format($unitPrice, 2, '.', '');
+            $item->discount_amount = number_format($discount, 2, '.', '');
+            $item->tax_amount = number_format($tax, 2, '.', '');
+            $item->line_total = number_format($base - $discount + $tax, 2, '.', '');
             $item->save();
         }
         $order->load('items');
@@ -322,10 +323,19 @@ class SalesOrderController extends Controller
         $subtotal = $order->items->sum(fn ($item) => (int) $item->quantity * (float) $item->unit_price);
         $lineDiscount = (float) $order->items->sum('discount_amount');
         $tax = (float) $order->items->sum('tax_amount');
-        $order->subtotal = $subtotal;
-        $order->discount_total = $lineDiscount + (float) $order->order_discount;
-        $order->tax_total = $tax;
-        $order->grand_total = max(0, $subtotal - (float) $order->discount_total + $tax + (float) $order->shipping_total);
+        $discountTotal = $lineDiscount + (float) $order->order_discount;
+        if ($discountTotal > $subtotal) {
+            throw new RuntimeException('Total discounts cannot exceed the order subtotal.');
+        }
+        $grandTotal = max(0, $subtotal - $discountTotal + $tax + (float) $order->shipping_total);
+        $paid = (float) $order->completedPayments()->sum('amount');
+        if ($paid > $grandTotal + 0.001) {
+            throw new RuntimeException('Order total cannot be reduced below the amount already paid.');
+        }
+        $order->subtotal = number_format($subtotal, 2, '.', '');
+        $order->discount_total = number_format($discountTotal, 2, '.', '');
+        $order->tax_total = number_format($tax, 2, '.', '');
+        $order->grand_total = number_format($grandTotal, 2, '.', '');
         $order->save();
         $this->refreshPaymentStatus($order);
     }
