@@ -30,7 +30,7 @@
         "illuminate/hashing": "^11.39",
         "illuminate/pagination": "^11.39",
         "illuminate/validation": "^11.39",
-        "monolog/monolog": "^2.8",
+        "monolog/monolog": "^3.12",
         "php-di/php-di": "^6.4",
         "slim/psr7": "^1.8",
         "slim/slim": "^4.15",
