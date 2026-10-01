@@ -25,7 +25,7 @@
         "php": "^8.2",
         "ext-fileinfo": "*",
         "ext-json": "*",
-        "firebase/php-jwt": "^7.1",
+        "firebase/php-jwt": "^7.2",
         "illuminate/database": "^11.39",
         "illuminate/hashing": "^11.39",
         "illuminate/pagination": "^11.39",
